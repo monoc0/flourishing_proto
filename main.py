@@ -2,10 +2,20 @@ import pygame
 from pygame import gfxdraw
 import classes
 from time import sleep
+import dialogue
 
-def run(w, h, fps, start):
-    pygame.init()
-    screen = pygame.display.set_mode((w, h))
+pygame.init()
+screen = pygame.display.set_mode((1280, 720))
+
+badCounter = 0
+
+def increment_bad():
+    global badCounter
+    badCounter += 1
+    print(badCounter)  # optional, for debugging
+
+def run(screen, fps, start):
+
     clock = pygame.time.Clock()
 
     active = start
@@ -48,11 +58,11 @@ class title(classes.Scene):
         self.text_surf1 = self.font1.render("FLOURISHING", True, (0, 0, 0))
         self.font2 = pygame.font.SysFont("arial", 14)
         self.text_surf2 = self.font2.render("by YUMUL, CALEON, AQUINO, BOBILA, MIRANDA", True, (0, 0, 0))
+        self.start = classes.Button("btn.png", (screen.get_width()//3*2-360, screen.get_height()/3*2), (255, 255, 255), "START", 0.5)
 
     def process(self, events, pressed_keys):
-        for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.switch(self.newScene)
+        if self.start.is_clicked(events):
+            self.switch(self.newScene)
 
     def upd(self):
         pass
@@ -67,23 +77,53 @@ class title(classes.Scene):
         screen.blit(self.text_surf1, rect1)
         rect2 = self.text_surf2.get_rect(center=(screen.get_width() // 2, screen.get_height()//2+32))
         screen.blit(self.text_surf2, rect2)
+        self.start.draw(screen)
 
+def build_end():
+    if badCounter < 1:
+        return classes.cutscene(None, dialogue.e_1)
+    elif badCounter < 3:
+        return classes.cutscene(None, dialogue.e_2)
+    else:
+        return classes.cutscene(None, dialogue.e_3)
 
+q5 = classes.cutscene(classes.choice(
+    classes.cutscene(None, dialogue.q_5a, on_proceed=build_end),
+    classes.cutscene(None, dialogue.q_5b, on_proceed=build_end),
+    dialogue.q_5,
+    on_bad=increment_bad
+), dialogue.q_i5)
 
-class game(classes.Scene):
-    def __init__(self, newScene):
-        super().__init__()
-        self.newScene = newScene
+q4 = classes.cutscene(classes.choice(
+    classes.cutscene(q5,dialogue.q_4a),
+    classes.cutscene(q5,dialogue.q_4b),
+    dialogue.q_4,
+    on_bad=increment_bad
+),dialogue.q_i4)
 
-    def process(self, events, pressed_keys):
-        for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.switch(self.newScene)
+q3 = classes.cutscene(classes.choice(
+    classes.cutscene(q4,dialogue.q_3a),
+    classes.cutscene(q4,dialogue.q_3b),
+    dialogue.q_3,
+    on_good=increment_bad
+),dialogue.q_i3)
 
-    def upd(self):
-        pass
+q2 = classes.cutscene(classes.choice(
+    classes.cutscene(q3,dialogue.q_2a),
+    classes.cutscene(q3,dialogue.q_2b),
+    dialogue.q_2,
+    on_good=increment_bad
+),dialogue.q_i2)
 
-    def render(self, screen):
-        screen.fill((0, 255, 255))
+order = title(
+    classes.cutscene(
+        classes.choice(
+            classes.cutscene(q2,dialogue.q_1a),
+            classes.cutscene(q2,dialogue.q_1b),
+            dialogue.q_1,
+            on_bad=increment_bad
+        ),dialogue.q_i
+        )
+        )
 
-run(1280, 720, 60, title(game(None)))
+run(screen, 60, order) 

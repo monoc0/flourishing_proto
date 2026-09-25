@@ -1,18 +1,7 @@
 import pygame
 from pygame import gfxdraw
-import sys
-import os
 
 pygame.init()
-
-
-def resource_path(relative_path):
-    """Get the absolute path to a resource, works for dev and for PyInstaller onefile exe."""
-    try:
-        base_path = sys._MEIPASS  # PyInstaller creates this temp folder at runtime
-    except AttributeError:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
 
 def plch():
     print("undefined")
@@ -38,7 +27,7 @@ class Scene:
 
 class Button:
     def __init__(self, image_path, position, color, text="", scale=1.0, font_name="arial", font_size=24, text_color=(0, 0, 0)):
-        self.image = pygame.image.load(resource_path(image_path)).convert_alpha()
+        self.image = pygame.image.load(image_path).convert_alpha()
         original_width = self.image.get_width()
         original_height = self.image.get_height()
         new_width = int(original_width * scale)
